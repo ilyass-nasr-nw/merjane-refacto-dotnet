@@ -22,11 +22,16 @@ namespace Refacto.DotNet.Controllers.Database.Context
                 .HasMany(o => o.Items)
                 .WithMany(); // Since Product doesn't have a collection for Order
 
+            // Store the ProductType enum as its upper-case string representation
+            // (NORMAL / SEASONAL / EXPIRABLE) so the persisted data is unchanged.
+            _ = modelBuilder.Entity<Product>()
+                .Property(p => p.Type)
+                .HasConversion(
+                    type => type.ToString().ToUpperInvariant(),
+                    value => Enum.Parse<ProductType>(value, true));
         }
-
 
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-
     }
 }
