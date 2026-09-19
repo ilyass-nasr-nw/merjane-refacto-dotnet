@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Refacto.DotNet.Controllers.Application.Orders;
 using Refacto.DotNet.Controllers.Application.Products;
 using Refacto.DotNet.Controllers.Database.Context;
+using Refacto.DotNet.Controllers.Development;
 using Refacto.DotNet.Controllers.Infrastructure.Persistence;
 using Refacto.DotNet.Controllers.Infrastructure.Time;
 using Refacto.DotNet.Controllers.Services;
@@ -27,6 +28,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     _ = options.UseInMemoryDatabase($"InMemoryDb");
 });
+
+// Manual-testing scaffolding, Development only. Safe to delete: nothing in the
+// application layer depends on it.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<NotificationRecorder>();
+    builder.Services.AddScoped<DemoDataSeeder>();
+    builder.Services.AddScoped<INotificationService>(serviceProvider =>
+        new RecordingNotificationService(
+            new NotificationService(),
+            serviceProvider.GetRequiredService<NotificationRecorder>(),
+            serviceProvider.GetRequiredService<ILogger<RecordingNotificationService>>()));
+}
 
 WebApplication app = builder.Build();
 
